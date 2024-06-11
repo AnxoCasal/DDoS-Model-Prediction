@@ -8,7 +8,14 @@ import sys
 # os.environ['HADOOP_HOME'] = "C:/Program Files/spark-3.3.0-bin-hadoop3"
 # sys.path.append("C:/Program Files/spark-3.3.0-bin-hadoop3")
 
+
 def ip_classification(col_name):
+    '''
+    Recibe una columna que contenga IPs, las lee y las clasifica en privadas (1) y públicas (0)
+    
+    :col_name: Nombre de la columna en el Dataset
+    '''
+
     return when(
         (split(col(col_name), '\.')[0] == 172) & (split(col(col_name), '\.')[1].cast('int') >= 16) & (split(col(col_name), '\.')[1].cast('int') <= 31), 1
     ).when(
@@ -16,6 +23,16 @@ def ip_classification(col_name):
     ).otherwise(0)
 
 def ports_to_id(df, column, port_dict):
+    '''
+    Recibe un dataset, el nombre de la columna que contiene los puertos y un diccionario de puertos.
+    Accede a la columna del dataset y transforma los puertos a sus valores respectivos del diccionario.
+    Los que no contenga el diccionario los convierte a 0
+
+    :df: Dataset
+    :column: Columna de puertos
+    :port_dict: Diccionario para los puertos (clave) y sus valores(valor)
+    '''
+    
     df = df.withColumn(column, when(~col(column).isin([p for sublist in port_dict.values() for p in sublist]), 0).otherwise(col(column)))
     
     for i, port_list in enumerate(port_dict.values(),start=1):
@@ -23,15 +40,19 @@ def ports_to_id(df, column, port_dict):
     
     return df
 
-def start_spark_file(path, appname="DDoS Data Processing"):
-
-    spark = SparkSession.builder \
-        .appName(appname) \
-        .getOrCreate()
-
-    return spark, spark.read.csv(path, header=True, inferSchema=True)
-
 def index_colum(df, column, new_column, drop= True):
+    '''
+    Recibe un dataset, el nombre de la columna objetivo y el nombre de la nueva columna a crear, ademas de
+    un booleano para indicar si se elimina la anterior o no.
+    Crea un StringIndexer, un objeto que que recorre la columna y por cada valor nuevo le asigna un indice
+    en una nueva columna.
+    La nueva columna se castea a Integer y en caso de estar drop a True se elimina la columna original.
+
+    :df: Dataset
+    :column: Columna objetivo
+    :new_column: Nombre que recibira la nueva columna creada
+    :drop: Booleano para indicar si eliminamos la columna original
+    '''
 
     indexer = StringIndexer(inputCol=column, outputCol=new_column)
 
@@ -45,6 +66,15 @@ def index_colum(df, column, new_column, drop= True):
     return indexed_df
 
 def fill_with_max(df, column):
+    '''
+    Recibe un dataset y una columna de este.
+    Castea todos los "Infinity" a float, guarda el siguiente valor máximo y posteriormente reemplaza, tanto 
+    los inf como los nulls con este último.
+
+    :df: Dataset
+    :column: Nombre de la columna objetivo
+    :max_value: Siguiente valor máximo a infinity
+    '''
 
     df = df.withColumn(column, when(col(column) == "Infinity", float('inf')).otherwise(col(column).cast("float")))
 
@@ -54,35 +84,11 @@ def fill_with_max(df, column):
     df = df.withColumn(column, 
         when((col(column) == float('inf')) | (col(column).isNull()), max_value).otherwise(col(column)))
     
-    return column
+    return df
 
-def write_file(df):
+def main_staging(file, spark):
 
-    #df_final.write.parquet(os.path.join("Archivos/Staging", "staging.parquet"), mode='overwrite')
-    
-    ###### PARQUET
-    output_dir = "temp_parquet_output"
-    df.coalesce(1).write.parquet(output_dir, mode='overwrite', compression='snappy')
-
-    for file_name in os.listdir(output_dir):
-        if file_name.endswith(".parquet"):
-            shutil.move(os.path.join(output_dir, file_name), os.path.join("Archivos/Staging", "staging.parquet"))
-
-    shutil.rmtree(output_dir)
-
-    ###### CSV
-    # output_dir = "temp_csv_output"
-    # df_final.coalesce(1).write.csv(output_dir, header=True, mode='overwrite')
-
-    # for file_name in os.listdir(output_dir):
-    #     if file_name.endswith(".csv"):
-    #         shutil.move(os.path.join(output_dir, file_name), os.path.join("Archivos/Staging", "staging.csv"))
-
-    # shutil.rmtree(output_dir)
-
-def main():
-
-    spark, df = start_spark_file("Archivos/Raw/raw.csv")
+    df = spark.read.csv(file, header=True, inferSchema=True)
 
     df = df.withColumn("Source IP", ip_classification("Source IP"))
     df = df.withColumn("Destination IP", ip_classification("Destination IP"))
@@ -92,18 +98,13 @@ def main():
     df = df.filter(df["Protocol"] != 0)
 
     df = index_colum(df, "Protocol", "ProtocalIndex")
-    #df = df.withColumn("Protocolo", when(col("Protocolo") == 0, 0).otherwise(1)) LO COMENTE SIN PROBAR SI SIGUE FUNCIONANDO SIN EL!!!
 
     df = df.drop("Unnamed: 0", "Flow ID")
 
-    df = ports_to_id(df, "Source Port")
+    df = ports_to_id(df, "Source Port", port_dict)
 
-    df = ports_to_id(df, "Destination Port")
+    df = ports_to_id(df, "Destination Port", port_dict)
 
     df = fill_with_max(df, "Flow Packets/s")
 
     df = fill_with_max(df, "Flow Bytes/s")
-
-    write_file(df)
-
-    spark.stop()
