@@ -85,26 +85,3 @@ def fill_with_max(df, column):
         when((col(column) == float('inf')) | (col(column).isNull()), max_value).otherwise(col(column)))
     
     return df
-
-def main_staging(file, spark):
-
-    df = spark.read.csv(file, header=True, inferSchema=True)
-
-    df = df.withColumn("Source IP", ip_classification("Source IP"))
-    df = df.withColumn("Destination IP", ip_classification("Destination IP"))
-
-    df = index_colum(df, "Label", "LabelIndex")
-
-    df = df.filter(df["Protocol"] != 0)
-
-    df = index_colum(df, "Protocol", "ProtocalIndex")
-
-    df = df.drop("Unnamed: 0", "Flow ID")
-
-    df = ports_to_id(df, "Source Port", port_dict)
-
-    df = ports_to_id(df, "Destination Port", port_dict)
-
-    df = fill_with_max(df, "Flow Packets/s")
-
-    df = fill_with_max(df, "Flow Bytes/s")

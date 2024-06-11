@@ -1,9 +1,6 @@
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
-import pyspark.sql.types as T
-import saving_script as sc
 
-def merge_csv_files(file_paths):
+def merge_csv_files(spark, file_paths):
     """
     Lee varios archivos CSV y los combina en un solo DataFrame.
     
@@ -36,68 +33,3 @@ def stratify_dataframe(df):
         balanced_df = balanced_df.union(sdf)
 
     return balanced_df
-
-spark = SparkSession.builder \
-        .appName("Merge CSV Files") \
-        .getOrCreate()
-
-# Lista de rutas a los archivos CSV
-file_paths = [
-    "./01-12/DrDoS_LDAP.csv",
-    "./01-12/DrDoS_MSSQL.csv",
-    "./01-12/DrDoS_NetBIOS.csv",
-    "./01-12/DrDoS_UDP.csv",
-    "./01-12/DrDoS_SSDP.csv",
-    "./01-12/DrDoS_SNMP.csv",
-    "./01-12/DrDoS_NTP.csv",
-    "./01-12/DrDoS_DNS.csv",
-    "./01-12/Syn.csv",
-    "./01-12/TFTP.csv",
-    "./01-12/UDPLag.csv"
-]
-
-# Llamar a la función para combinar los CSVs
-df = merge_csv_files(file_paths)
-df = stratify_dataframe(df)
-
-'''
-# Ruta para el nuevo archivo CSV
-output_path = "./03-11/COMBINADO.csv"
-
-# Guardar el DataFrame en un nuevo archivo CSV
-df.coalesce(1).write.option("header","true").csv(output_path)
-'''
-
-
-TMP_OUTPUT_DIR = "./test"
-OUTPUT_FILE = "test.csv"
-
-headers = spark.createDataFrame(
-    data=[[f.name for f in df.schema.fields]],
-    schema=T.StructType(
-        [T.StructField(f.name, T.StringType(), False) for f in df.schema.fields]
-    ),
-)
-headers.write.csv(TMP_OUTPUT_DIR)
-
-# write csv headers to output file first
-sc.copy_merge_into(
-    spark,
-    TMP_OUTPUT_DIR,
-    OUTPUT_FILE,
-    delete_source=True,
-)
-
-# Write main outputs
-# dataframe written to TMP_OUTPUT_DIR folder in 5 separate csv files (one for each partition)
-df.write.csv(TMP_OUTPUT_DIR)
-
-# merge main csv files in folder into single file
-sc.copy_merge_into(
-    spark,
-    TMP_OUTPUT_DIR,
-    OUTPUT_FILE,
-    delete_source=True,
-)
-
-spark.stop()

@@ -1,4 +1,11 @@
-from utils import SparkSessionHandler, FileSystemHandler
+from utils.utils import SparkSessionHandler, FileSystemHandler, SavePartitions
+from ingesta.raw import raw
+from ingesta.staging import staging
+
+TEMP_DIR = './tmp'
+DOWNLOADED_DIR = "./archivos/downloaded"
+RAW_DIR = './archivos/raw'
+STAGING_DIR = './archivos/staging'
 
 PORTS_DICTIONARY = {
     "web": [80, 443, 8080],  # 0
@@ -14,23 +21,44 @@ PORTS_DICTIONARY = {
     "dns": [5353]  # 10
 }
 
-spark, df = start_spark_file("Archivos/Raw/raw.csv")
+spark = SparkSessionHandler.start_session()
 
-df = df.withColumn("Source IP", ip_classification("Source IP"))
-df = df.withColumn("Destination IP", ip_classification("Destination IP"))
+file_writer = SavePartitions(spark)
 
-df = index_colum(df, "Label", "LabelIndex")
+####################################################
+#                   C A P A    R A W               #
+####################################################
 
+raw_paths = FileSystemHandler.scan_directory(DOWNLOADED_DIR, 'csv')
+
+df = raw.merge_csv_files(spark, raw_paths)
+df = raw.stratify_dataframe(df)
+
+raw_parquet_dir = f'{RAW_DIR}/raw.parquet'
+
+file_writer.save_file(df, TEMP_DIR, raw_parquet_dir)
+
+######################################################
+#              C A P A    S T A G I N G              #
+######################################################
+
+df = df.withColumn("Source IP", staging.ip_classification("Source IP"))
+df = df.withColumn("Destination IP", staging.ip_classification("Destination IP"))
+
+df = staging.index_colum(df, "Label", "LabelIndex")
 df = df.filter(df["Protocol"] != 0)
+df = staging.index_colum(df, "Protocol", "ProtocalIndex")
 
-df = index_colum(df, "Protocol", "ProtocalIndex")
-    #df = df.withColumn("Protocolo", when(col("Protocolo") == 0, 0).otherwise(1)) LO COMENTE SIN PROBAR SI SIGUE FUNCIONANDO SIN EL!!!
 df = df.drop("Unnamed: 0", "Flow ID")
-df = ports_to_id(df, "Source Port")
-df = ports_to_id(df, "Destination Port")
-df = fill_with_max(df, "Flow Packets/s")
-df = fill_with_max(df, "Flow Bytes/s")
 
-write_file(df)
+df = staging.ports_to_id(df, "Source Port", PORTS_DICTIONARY)
+df = staging.ports_to_id(df, "Destination Port", PORTS_DICTIONARY)
 
-spark.stop()
+df = staging.fill_with_max(df, "Flow Packets/s")
+df = staging.fill_with_max(df, "Flow Bytes/s")
+
+staging_parquet_dir = f'{STAGING_DIR}/staging.parquet'
+
+file_writer.save_file(df, TEMP_DIR, staging_parquet_dir)
+
+SparkSessionHandler.stop_session(spark)
