@@ -62,3 +62,9 @@ staging_parquet_dir = f'{STAGING_DIR}/staging.parquet'
 file_writer.save_file(df, TEMP_DIR, staging_parquet_dir)
 
 SparkSessionHandler.stop_session(spark)
+
+##########################################################
+#              C A P A    B U S S I N E S S              #
+##########################################################
+
+df = df.drop("Timestamp", "SimillarHTTP")
