@@ -1,6 +1,6 @@
-from utils.utils import SparkSessionHandler, FileSystemHandler, SavePartitions
-from ingesta.raw import raw
-from ingesta.staging import staging
+from Utils.utils import SparkSessionHandler, FileSystemHandler, SavePartitions
+from Ingesta.raw import raw
+from Ingesta.staging import staging
 
 TEMP_DIR = './tmp'
 DOWNLOADED_DIR = "./archivos/downloaded"
