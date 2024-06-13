@@ -21,8 +21,6 @@ def stratify_dataframe(df):
 
     label_counts = df.groupBy(" Label").count().collect()
     min_count = min(row['count'] for row in label_counts if row[' Label'] != 'WebDDoS')
-    print(label_counts)
-    print(min_count)
 
     # Tomar una muestra de tamaño igual al número mínimo de entradas para cada valor de 'label'
     sampled_dfs = [df.filter((col(" Label") == row[' Label'])).sample(False, min_count / row['count'], seed=2) for row in label_counts if (row[' Label'] != 'WebDDoS')]
@@ -33,3 +31,20 @@ def stratify_dataframe(df):
         balanced_df = balanced_df.union(sdf)
 
     return balanced_df
+
+def refactor_headers(df):
+
+    #Los jobs de GLUE no pueden tener archivos cuyos headers contengan espacios
+    '''
+    for column in df.columns:
+        new_column = column.strip().replace(' ', '_')
+        df = df.withColumnRenamed(column, new_column)
+    '''
+    for column in df.columns:
+        new_column = column.strip().replace(' ', '_')
+        df = df.withColumnRenamed(column, new_column)
+
+    #Esta columna causa problemas en aws
+    df = df.drop("SimillarHTTP")
+
+    return df
