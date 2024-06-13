@@ -22,9 +22,9 @@ def fill_with_max(df, column):
 
 spark = SparkSession.builder.appName("AWS Glue Transform Job").getOrCreate()
 
-args = getResolvedOptions(sys.argv, ['input_bucket', 'output_bucket'])
-input_bucket = args['input_bucket']
-output_bucket = args['output_bucket']
+args = getResolvedOptions(sys.argv, ['raw_bucket', 'staging_bucket'])
+input_bucket = args['raw_bucket']
+output_bucket = args['staging_bucket']
 
 df = spark.read.parquet(f"s3://{input_bucket}/raw.parquet")
 

@@ -36,9 +36,9 @@ def ports_to_id(df, column, port_dict):
 
 spark = SparkSession.builder.appName("AWS Glue Transform Job").getOrCreate()
 
-args = getResolvedOptions(sys.argv, ['input_bucket', 'output_bucket'])
-input_bucket = args['input_bucket']
-output_bucket = args['output_bucket']
+args = getResolvedOptions(sys.argv, ['staging_bucket', 'business_bucket'])
+input_bucket = args['staging_bucket']
+output_bucket = args['business_bucket']
 
 df = spark.read.parquet(f"s3://{input_bucket}/staging.parquet")
 

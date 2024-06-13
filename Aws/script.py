@@ -9,14 +9,14 @@ class AWS_GLUE_S3():
         self.glue_client = boto3.client('glue', region_name=region_aws)
 
         buckets = self.get_buckets()
+        staging_file = "glue-raw-staging.py"
+        business_file = "glue-staging-business.py"
 
         if not any("glue-scripts" in bucket for bucket in buckets):
             bucket_name = "glue-scripts-rsb"
             self.create_s3_bucket(bucket_name)
-            staging_file = "glue-raw-staging.py"
             staging = self.file(staging_file)
             self.upload_file(staging_file,staging,bucket_name) 
-            business_file = "glue-staging-business.py"
             business =  self.file(business_file)
             self.upload_file(business_file,business,bucket_name) 
 
@@ -34,8 +34,13 @@ class AWS_GLUE_S3():
         self.upload_file(raw_file,raw_data,f"raw-data-alex-{timestmp}")
 
         glue_role_arn = os.getenv('GLUE_ROLE_ARN')
-        self.create_glue_job(glue_role_arn,buckets)
-        self.run_glue_job()
+        self.create_glue_job(glue_role_arn, buckets, staging_file)
+        first_job_run_id = self.run_glue_job(staging_file)
+        self.wait_for_job_completion(staging_file, first_job_run_id)
+
+        self.create_glue_job(glue_role_arn, buckets, business_file)
+        second_job_run_id = self.run_glue_job(business_file)
+        self.wait_for_job_completion(business_file, second_job_run_id)
 
     def delete_bucket(self,bucket_name):       
         try:
@@ -83,27 +88,30 @@ class AWS_GLUE_S3():
             print(f"Error al leer el archivo {path}: {e}")
             return None
 
-    def create_glue_job(self,glue_role_arn,buckets):
+    def create_glue_job(self,glue_role_arn,buckets,python_script):
         for buck in buckets:
             if "raw-data" in buck:
                 raw_buck = buck
             if "staging-data" in buck:
                 staging_buck = buck
+            if "business-data" in buck:
+                business_buck = buck
             if "scripts" in buck:
                 script_buck = buck
 
         try:
             self.glue_client.create_job(
-                Name='default-job',
+                Name=python_script,
                 Role=glue_role_arn,
                 Command={
                     'Name': 'glueetl',
-                    'ScriptLocation': f's3://{script_buck}/glue-raw-staging.py', 
+                    'ScriptLocation': f's3://{script_buck}/{python_script}', 
                     'PythonVersion': '3'
                 },
                 DefaultArguments={
-                    '--input_bucket': raw_buck,
-                    '--output_bucket': staging_buck
+                    '--raw_bucket': raw_buck,
+                    '--staging_bucket': staging_buck,
+                    '--business_bucket': business_buck
                 },
                 GlueVersion='2.0',
                 MaxRetries=0,
@@ -117,11 +125,28 @@ class AWS_GLUE_S3():
         except Exception as e:
             print(f"Error al crear el trabajo de AWS Glue: {e}")
 
-    def run_glue_job(self):
+    def run_glue_job(self, job_name):
         try:
-            self.glue_client.start_job_run(JobName="default-job")
-            print("Job de AWS Glue iniciado exitosamente.")
+            response = self.glue_client.start_job_run(JobName=job_name)
+            job_run_id = response['JobRunId']
+            print(f"Job de AWS Glue {job_name} iniciado exitosamente con JobRunId: {job_run_id}.")
+            return job_run_id
         except Exception as e:
             print(f"Error al iniciar el job de AWS Glue: {e}")
+    
+    def wait_for_job_completion(self, job_name, job_run_id):
+        try:
+            waiter = self.glue_client.get_waiter('job_run_succeeded')
+            waiter.wait(
+                JobName=job_name,
+                RunId=job_run_id,
+                WaiterConfig={
+                    'Delay': 30,  
+                    'MaxAttempts': 60  
+                }
+            )
+            print(f"Job de AWS Glue {job_name} con JobRunId: {job_run_id} completado exitosamente.")
+        except Exception as e:
+            print(f"Error al esperar la finalización del job de AWS Glue: {e}")
 
 aws_glue_s3 = AWS_GLUE_S3()
