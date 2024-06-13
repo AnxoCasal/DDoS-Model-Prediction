@@ -23,7 +23,7 @@ def ip_classification(col_name):
 def index_colum(df, column, new_column, drop=True):
     indexer = StringIndexer(inputCol=column, outputCol=new_column)
     indexed_df = indexer.fit(df).transform(df)
-    indexed_df = indexed_df.withColumn("LabelIndex", col("LabelIndex").cast("integer"))
+    indexed_df = indexed_df.withColumn("Label_Index", col("Label_Index").cast("integer"))
     if drop:
         indexed_df = indexed_df.drop(column)
     return indexed_df
@@ -70,12 +70,17 @@ df = ports_to_id(df, "Destination_Port", ports_dict)
 dynamic_frame = DynamicFrame.fromDF(df, glueContext, "dynamic_frame")
 
 glueContext.write_dynamic_frame.from_options(
-    frame = dynamic_frame,
-    connection_type = "s3",
-    connection_options = {
+    frame=dynamic_frame,
+    connection_type="s3",
+    connection_options={
         "path": f"s3://{output_bucket}/business.parquet",
+        "partitionKeys": [],  
     },
-    format = "parquet"
+    format="parquet",
+    format_options={
+        "compression": "snappy",  
+        "maxFiles": 1,  
+    }
 )
 
 spark.stop()
