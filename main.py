@@ -85,18 +85,17 @@ file_writer = SavePartitions(spark)
 #                 C A P A    R A W                 #
 ####################################################
 
-#df = main_raw(spark, RAW_DIR, TEMP_DIR, DOWNLOADED_DIR, file_writer)
+df = main_raw(spark, RAW_DIR, TEMP_DIR, DOWNLOADED_DIR, file_writer)
 
 ######################################################
 #              C A P A    S T A G I N G              #
 ######################################################
 
-#df = main_staging(df, STAGING_DIR, TEMP_DIR, file_writer)
+df = main_staging(df, STAGING_DIR, TEMP_DIR, file_writer)
 
 ########################################################
 #              C A P A    B U S I N E S S              #
 ########################################################
-df = spark.read.parquet('./archivos/staging/staging/part-00000-cc401985-5f4a-4c87-a5ea-affb66f9c91c-c000.snappy.parquet', header=True, inferSchema=True)
 df = main_bussiness(df, BUSINESS_DIR, TEMP_DIR, PORTS_DICTIONARY, file_writer)
 
 SparkSessionHandler.stop_session(spark)
