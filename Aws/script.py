@@ -4,24 +4,35 @@ import os
 
 class AWS_GLUE_S3():
     def __init__(self) -> None:
+        region_aws = os.getenv('AWS_REGION')
         self.s3_client = boto3.client('s3')
-        self.glue_client = boto3.client('glue', region_name='us-east-1')
+        self.glue_client = boto3.client('glue', region_name=region_aws)
 
         buckets = self.get_buckets()
 
+        if not any("glue-scripts" in bucket for bucket in buckets):
+            bucket_name = "glue-scripts-rsb"
+            self.create_s3_bucket(bucket_name)
+            staging_file = "glue-raw-staging.py"
+            staging = self.file(staging_file)
+            self.upload_file(staging_file,staging,bucket_name) 
+            business_file = "glue-staging-business.py"
+            business =  self.file(business_file)
+            self.upload_file(business_file,business,bucket_name) 
+
+        timestmp = int(time.time())
+
         s3_buckets = ["raw-data","staging-data","business-data"]
-
-        if not s3_buckets in buckets:
-        
-            timestmp = int(time.time())
-            for s3 in s3_buckets:
-                self.bucket_name = f"{s3}-alex-{timestmp}"
-                self.create_s3_bucket()
-            
+        for s3 in s3_buckets: 
+            if not any(s3 in bucket for bucket in buckets): 
+                bucket_name = f"{s3}-alex-{timestmp}"
+                self.create_s3_bucket(bucket_name)
                 buckets = self.get_buckets()
+            
+        raw_file = "raw.parquet"
+        raw_data = self.file(raw_file)
+        self.upload_file(raw_file,raw_data,f"raw-data-alex-{timestmp}")
 
-        raw_data = self.file("../Archivos/Raw/raw.parquet")
-        self.upload_file(raw_data,f"raw-data-alex-{timestmp}")
         glue_role_arn = os.getenv('GLUE_ROLE_ARN')
         self.create_glue_job(glue_role_arn,buckets)
         self.run_glue_job()
@@ -45,20 +56,20 @@ class AWS_GLUE_S3():
         bucket_names = [bucket['Name'] for bucket in response['Buckets']]
         return bucket_names
     
-    def create_s3_bucket(self):
+    def create_s3_bucket(self,bucket_name):
         try:
-            self.s3_client.create_bucket(Bucket=self.bucket_name)
-            print(f"Bucket {self.bucket_name} creado exitosamente.")
+            self.s3_client.create_bucket(Bucket=bucket_name)
+            print(f"Bucket {bucket_name} creado exitosamente.")
         except Exception as e:
-            print(f"Error al crear el bucket {self.bucket_name}: {e}")
+            print(f"Error al crear el bucket {bucket_name}: {e}")
 
-    def upload_file(self, file, buck):
+    def upload_file(self,filename,file,buck):
         try:
-            print(f"Se va a cargar el archivo 'raw.parquet' en el bucket {buck}")
-            self.s3_client.put_object(Bucket=buck, Key='raw.parquet', Body=file)
-            print(f"Archivo 'raw.parquet' cargado exitosamente en el bucket {buck}.")
+            print(f"Se va a cargar el archivo {filename} en el bucket {buck}")
+            self.s3_client.put_object(Bucket=buck, Key=filename, Body=file)
+            print(f"Archivo {filename} cargado exitosamente en el bucket {buck}.")
         except Exception as e:
-            print(f"Error al cargar el archivo 'raw.parquet' en el bucket {buck}: {e}")
+            print(f"Error al cargar el archivo {filename} en el bucket {buck}: {e}")
 
     def file(self, path):
         try:
@@ -83,11 +94,11 @@ class AWS_GLUE_S3():
 
         try:
             self.glue_client.create_job(
-                Name='transform-job3',
+                Name='default-job',
                 Role=glue_role_arn,
                 Command={
                     'Name': 'glueetl',
-                    'ScriptLocation': f's3://{script_buck}/glue-scripts/glue-raw-staging.py', 
+                    'ScriptLocation': f's3://{script_buck}/glue-raw-staging.py', 
                     'PythonVersion': '3'
                 },
                 DefaultArguments={
@@ -108,7 +119,7 @@ class AWS_GLUE_S3():
 
     def run_glue_job(self):
         try:
-            self.glue_client.start_job_run(JobName="transform-job3")
+            self.glue_client.start_job_run(JobName="default-job")
             print("Job de AWS Glue iniciado exitosamente.")
         except Exception as e:
             print(f"Error al iniciar el job de AWS Glue: {e}")
