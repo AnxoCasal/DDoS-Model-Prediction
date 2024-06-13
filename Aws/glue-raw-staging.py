@@ -38,12 +38,17 @@ df = fill_with_max(df, "Flow_Bytes/s")
 dynamic_frame = DynamicFrame.fromDF(df, glueContext, "dynamic_frame")
 
 glueContext.write_dynamic_frame.from_options(
-    frame = dynamic_frame,
-    connection_type = "s3",
-    connection_options = {
+    frame=dynamic_frame,
+    connection_type="s3",
+    connection_options={
         "path": f"s3://{output_bucket}/staging.parquet",
+        "partitionKeys": [],  
     },
-    format = "parquet"
+    format="parquet",
+    format_options={
+        "compression": "snappy",  
+        "maxFiles": 1,  
+    }
 )
 
 spark.stop()

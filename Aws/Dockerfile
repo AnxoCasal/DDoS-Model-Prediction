@@ -1,7 +1,7 @@
 FROM amazon/aws-glue-libs:glue_libs_3.0.0_image_01
 
 COPY script.py /home/glue_user/workspace/script.py
-COPY ../Archivos/Raw/raw.parquet /home/glue_user/workspace/raw.parquet
+COPY raw.parquet /home/glue_user/workspace/raw.parquet
 COPY glue-raw-staging.py /home/glue_user/workspace/glue-raw-staging.py
 COPY glue-staging-business.py /home/glue_user/workspace/glue-staging-business.py
 

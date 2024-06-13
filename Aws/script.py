@@ -28,10 +28,16 @@ class AWS_GLUE_S3():
                 bucket_name = f"{s3}-alex-{timestmp}"
                 self.create_s3_bucket(bucket_name)
                 buckets = self.get_buckets()
-            
+
+        for bucket in buckets:
+            if "raw-data" in bucket:
+                dest_bucket = bucket
+
+        buckets = self.get_buckets()
+
         raw_file = "raw.parquet"
         raw_data = self.file(raw_file)
-        self.upload_file(raw_file,raw_data,f"raw-data-alex-{timestmp}")
+        self.upload_file(raw_file,raw_data,dest_bucket)
 
         glue_role_arn = os.getenv('GLUE_ROLE_ARN')
         self.create_glue_job(glue_role_arn, buckets, staging_file)
@@ -96,7 +102,7 @@ class AWS_GLUE_S3():
                 staging_buck = buck
             if "business-data" in buck:
                 business_buck = buck
-            if "scripts" in buck:
+            if "glue-scripts-rsb" in buck:
                 script_buck = buck
 
         try:
@@ -135,18 +141,29 @@ class AWS_GLUE_S3():
             print(f"Error al iniciar el job de AWS Glue: {e}")
     
     def wait_for_job_completion(self, job_name, job_run_id):
-        try:
-            waiter = self.glue_client.get_waiter('job_run_succeeded')
-            waiter.wait(
-                JobName=job_name,
-                RunId=job_run_id,
-                WaiterConfig={
-                    'Delay': 30,  
-                    'MaxAttempts': 60  
-                }
-            )
-            print(f"Job de AWS Glue {job_name} con JobRunId: {job_run_id} completado exitosamente.")
-        except Exception as e:
-            print(f"Error al esperar la finalización del job de AWS Glue: {e}")
+        max_attempts = 30
+        delay = 60
+        attempts = 0
+
+        while attempts < max_attempts:
+            try:
+                response = self.glue_client.get_job_run(JobName=job_name, RunId=job_run_id)
+                job_status = response['JobRun']['JobRunState']
+                print(f"Estado del job de AWS Glue {job_name} (JobRunId: {job_run_id}): {job_status}")
+
+                if job_status == 'SUCCEEDED':
+                    print(f"Job de AWS Glue {job_name} con JobRunId: {job_run_id} completado exitosamente.")
+                    return
+                elif job_status in ['FAILED', 'STOPPED']:
+                    print(f"Job de AWS Glue {job_name} con JobRunId: {job_run_id} ha fallado o fue detenido.")
+                    return
+
+            except Exception as e:
+                print(f"Error al obtener el estado del job de AWS Glue: {e}")
+
+            time.sleep(delay)
+            attempts += 1
+
+        print(f"El job de AWS Glue {job_name} con JobRunId: {job_run_id} no completó después de {max_attempts} intentos.")
 
 aws_glue_s3 = AWS_GLUE_S3()
