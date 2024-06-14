@@ -1,2 +1,6 @@
 **/.env
 *.csv
+*.zip
+_*
+.*
+__pycache__/*
