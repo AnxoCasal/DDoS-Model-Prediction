@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader, Subset, TensorDataset
 from Modelos.LNN_01 import SimpleNN
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
 import wandb
+from Modelos.Model_lab import *
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DATASET_PATH = '../Entrenamiento/training_set.parquet'
@@ -90,8 +91,14 @@ def build_model(model):
     '''
     if model == "LNN_01":
         model = SimpleNN()
-    elif model == "LNN_02":
-       # model = LNN_02()
+    elif model == "anx_01":
+       model = NN_01()
+    elif model == "anx_02":
+       model = NN_02()
+    elif model == "anx_03":
+       model = NN_03()
+    elif model == "anx_04":
+       model = NN_04()
        pass
 
     model.to(DEVICE)

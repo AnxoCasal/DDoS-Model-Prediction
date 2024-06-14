@@ -43,6 +43,10 @@ parameters_dict = {
  
 sweep_config['parameters'] = parameters_dict
 
-sweep_id = wandb.sweep(sweep_config, project="test_new_sweeper")
-
-wandb.agent(sweep_id, train_sweeper.train, count=1)
+list_opciones = ['anx_01', 'anx_02', 'anx_03', 'anx_04']
+ 
+for o in list_opciones:
+   
+    sweep_config['parameters']['model']['value'] = o
+    sweep_id = wandb.sweep(sweep_config, project="test_new_sweeper")
+    wandb.agent(sweep_id, train_sweeper.train, count=10)
