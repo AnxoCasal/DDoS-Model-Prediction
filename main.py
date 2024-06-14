@@ -46,6 +46,8 @@ def main_staging(df, staging_dir, temp_dir, file_writer, file_name='staging'):
     df = staging.fill_with_max(df, "Flow_Packets/s")
     df = staging.fill_with_max(df, "Flow_Bytes/s")
 
+    df = staging.drop_single_value_columns(df)
+
     staging_parquet_dir = f'{staging_dir}/{file_name}'
 
     df.repartition(1).write.format('parquet').mode('overwrite').save(staging_parquet_dir)

@@ -1,7 +1,8 @@
 from pyspark.sql import SparkSession
 from typing import List
+import pyspark.sql.types as T
 from py4j.java_gateway import JavaObject
-from utils.meta import SingletonMeta
+from Utils.meta import SingletonMeta
 import os, glob, json, shutil
 
 class SparkSessionHandler():
@@ -51,17 +52,24 @@ class FileSystemHandler():
         '''
         with open(f'{path}/{name}.json', 'w', encoding='utf-8') as json_file:
             json.dump(file, json_file, ensure_ascii=False, indent=4)
-
+            
     @staticmethod
-    def dataframe_to_parquet(df, path, name):
-
-        df.coalesce(1).write.parquet(path, mode='overwrite', compression='snappy')
-
+    def spark_dataframe_to_parquet(df, path, name):
+ 
+        file_path = f'{path}/{name}.parquet'
+        df.coalesce(1).write.parquet(file_path, mode='overwrite', compression='snappy')
+ 
         for file_name in os.listdir(path):
-            if file_name.endswith(".parquet"):
-                shutil.move(os.path.join(path, file_name), os.path.join("Archivos/Staging", "staging.parquet"))
-
+            if file_name.endswith('.parquet'):
+                shutil.move(os.path.join(path, file_name), os.path.join(path, file_path))
+ 
         shutil.rmtree(path)
+       
+    @staticmethod
+    def pandas_dataframe_to_parquet(df, path, name):
+       
+        file_path = f'{path}/{name}.parquet'
+        df.to_parquet(file_path, compression='snappy')
         
 class SavePartitions(metaclass=SingletonMeta):
     
