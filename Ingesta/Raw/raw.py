@@ -7,10 +7,8 @@ def merge_csv_files(spark, file_paths):
     :param file_paths: Lista de rutas a los archivos CSV
     :return: DataFrame combinado
     """
-    # Leer cada archivo CSV en un DataFrame y almacenarlos en una lista
     dataframes = [spark.read.csv(file_path, header=True, inferSchema=True) for file_path in file_paths]
     
-    # Combinar todos los DataFrames en uno solo
     combined_df = dataframes[0]
     for df in dataframes[1:]:
         combined_df = combined_df.unionByName(df)
@@ -18,6 +16,11 @@ def merge_csv_files(spark, file_paths):
     return combined_df
 
 def stratify_dataframe(df):
+    """
+    Agrupa las filas en base al target, excluye las filas que en ese target tenga los valores a ignorar indicados.
+    Luego coge el grupo con menor cantidad de valores e iguala todos los grupos para que tenga esa misma cantidad de instancias.
+    Finalmente unifica los dataframes y los devuelve
+    """
 
     label_counts = df.groupBy(" Label").count().collect()
     min_count = min(row['count'] for row in label_counts if row[' Label'] != 'WebDDoS')

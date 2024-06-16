@@ -4,6 +4,8 @@ from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 from sklearn.model_selection import train_test_split
 
 class DataPreprocessing():
+    """
+    """
     
     @staticmethod
     def stratified_split_dataframe(df, target):
