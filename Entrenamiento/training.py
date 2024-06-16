@@ -57,3 +57,5 @@ class DataPreprocessing():
             lda.fit(X, y)
             explained_variance = lda.explained_variance_ratio_
             variance_ratio[i] = explained_variance.sum()
+
+        return variance_ratio
