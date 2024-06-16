@@ -6,6 +6,7 @@ import pandas as pd
 from torch.utils.data import DataLoader, Subset, TensorDataset
 from Modelos.LNN_01 import SimpleNN
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 import wandb
 from Modelos.Model_lab import *
 
@@ -34,6 +35,7 @@ def train(config=None):
         model = build_model(config.model)
         optimizer = optim.Adam(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
         criterion = nn.CrossEntropyLoss()
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, threshold=0.05, threshold_mode='rel', patience=2, cooldown=3)
 
         kf = StratifiedKFold(n_splits=config.k, shuffle=True, random_state=2)
         epochs_per_fold = config.epochs // config.k
@@ -49,7 +51,7 @@ def train(config=None):
             test_loader = DataLoader(test_subset, batch_size=config.batch_size, shuffle=True)
             
             factor += 1
-            training_loop(model, train_loader, test_loader, optimizer, criterion, epochs_per_fold, factor=factor)
+            training_loop(model, train_loader, test_loader, optimizer, criterion, scheduler, epochs_per_fold, factor=factor)
 
         plot_final(model, test_data)
 
@@ -147,7 +149,7 @@ def calculate_accuracy(model, loader):
     accuracy = 100 * correct_predictions / total_predictions
     return accuracy
 
-def training_loop(model, train_loader, val_loader, optimizer, criterion, epochs, factor=1):
+def training_loop(model, train_loader, val_loader, optimizer, criterion, scheduler, epochs, factor=1):
     '''
     Función wrapper de calculate_accuracy y train_epoch. Actualizará los logs
     de wandb con la información pertinente a cada epoch.
@@ -166,7 +168,9 @@ def training_loop(model, train_loader, val_loader, optimizer, criterion, epochs,
         accuracy = calculate_accuracy(model, val_loader)
         epoch_total = epoch + epochs * (factor - 1)
 
-        wandb.log({'epoch': epoch_total, 'loss': loss, 'val_acc': accuracy})
+        wandb.log({'epoch': epoch_total, 'loss': loss, 'val_acc': accuracy, 'learning_rate': scheduler.get_last_lr()})
+
+        scheduler.step(loss)
 
 def plot_final(model, data):
     '''
@@ -193,7 +197,7 @@ def plot_final(model, data):
     accuracy = 100 * correct_predictions / total_predictions
     wandb.log({"test_acc": accuracy})
 
-    ground_truth = data.tensors[1]
+    ground_truth = [int(n) for n in data.tensors[1]]
 
     wandb.log({"pr": wandb.plot.pr_curve(ground_truth.cpu(), scores, labels=range(scores.size(1)))})
     wandb.log({"roc": wandb.plot.roc_curve(ground_truth.cpu(), scores, labels=range(scores.size(1)))})
