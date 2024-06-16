@@ -4,10 +4,10 @@ from ingesta.staging import staging
 from ingesta.business import business
 
 TEMP_DIR = './tmp'
-DOWNLOADED_DIR = "./archivos/downloaded/01-12"
-RAW_DIR = './archivos/raw'
-STAGING_DIR = './archivos/staging'
-BUSINESS_DIR = './archivos/business'
+DOWNLOADED_DIR = "./Archivos/Downloaded/"
+RAW_DIR = './Archivos/Raw'
+STAGING_DIR = './Archivos/Staging'
+BUSINESS_DIR = './Archivos/Business'
 
 PORTS_DICTIONARY = {
     "web": [80, 443, 8080],             # 0
@@ -61,9 +61,9 @@ def main_bussiness (df, business_dir, ports_dict, file_name='business'):
     df = df.withColumn("Source_IP", business.ip_classification("Source_IP"))
     df = df.withColumn("Destination_IP", business.ip_classification("Destination_IP"))
 
-    df = business.index_colum(df, "Label", "Label_Index")
-
     df = business.index_colum(df, "Protocol", "Protocal_Index")
+
+    df = business.index_colum(df, "Label", "Label_Index")
 
     df = business.ports_to_id(df, "Source_Port", ports_dict)
     df = business.ports_to_id(df, "Destination_Port", ports_dict)
@@ -80,23 +80,21 @@ def main_bussiness (df, business_dir, ports_dict, file_name='business'):
 
 spark = SparkSessionHandler.start_session()
 
-file_writer = SavePartitions(spark)
-
 ####################################################
 #                 C A P A    R A W                 #
 ####################################################
 
-df = main_raw(spark, RAW_DIR, TEMP_DIR, DOWNLOADED_DIR, file_writer)
+df = main_raw(spark, RAW_DIR, TEMP_DIR, DOWNLOADED_DIR)
 
 ######################################################
 #              C A P A    S T A G I N G              #
 ######################################################
 
-df = main_staging(df, STAGING_DIR, TEMP_DIR, file_writer)
+df = main_staging(df, STAGING_DIR, TEMP_DIR)
 
 ########################################################
 #              C A P A    B U S I N E S S              #
 ########################################################
-df = main_bussiness(df, BUSINESS_DIR, TEMP_DIR, PORTS_DICTIONARY, file_writer)
+df = main_bussiness(df, BUSINESS_DIR, TEMP_DIR, PORTS_DICTIONARY)
 
 SparkSessionHandler.stop_session(spark)

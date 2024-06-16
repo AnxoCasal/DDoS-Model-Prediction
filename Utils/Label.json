@@ -1,0 +1,9 @@
+{
+    "BENIGN": 0.0,
+    "Portmap": 1.0,
+    "Syn": 2.0,
+    "UDP": 3.0,
+    "NetBIOS": 4.0,
+    "MSSQL": 5.0,
+    "LDAP": 6.0
+}

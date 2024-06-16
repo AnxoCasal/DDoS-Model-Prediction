@@ -25,9 +25,13 @@ def drop_single_value_columns(df):
     '''
     Elimina todas las columnas que solo contengan un valor
     '''
+    columns_to_drop = []
+    df_pandas = df.toPandas()
 
-    for column in df.columns:
-        if df[column].value_counts().count() == 1:
-           df = df.drop(column)
-
+    for column in df_pandas.columns:
+        if df_pandas[column].value_counts().count() == 1:
+           columns_to_drop.append(column)
+    
+    df = df.drop(*columns_to_drop)
+    
     return df

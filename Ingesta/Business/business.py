@@ -1,5 +1,6 @@
 from pyspark.sql.functions import col, when, split, max as spark_max, lit
 from pyspark.ml.feature import StringIndexer
+from Utils.utils import FileSystemHandler
 
 def ip_classification(col_name):
     '''
@@ -50,7 +51,12 @@ def index_colum(df, column, new_column, drop= True):
 
     indexed_df = indexer.fit(df).transform(df)
 
-    indexed_df = indexed_df.withColumn("Label_Index", col("Label_Index").cast("integer"))
+    indexed_df = indexed_df.withColumn(column, col(column).cast("integer"))
+
+    unique_values = df.select(column).distinct().rdd.map(lambda r: r[0]).collect()
+    value_to_index = {val: float(index) for index, val in enumerate(unique_values)}
+
+    FileSystemHandler.dictionary_to_json(value_to_index, './utils', column)
 
     if drop:
         indexed_df = indexed_df.drop(column)
