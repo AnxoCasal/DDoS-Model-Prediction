@@ -61,7 +61,6 @@ def main_bussiness (df, temp_dir, business_dir, ports_dict, file_writer, file_na
 
     df = business.index_colum(df, "Label", "Label_Index")
 
-    df = df.filter(df["Protocol"] != 0)
     df = business.index_colum(df, "Protocol", "Protocal_Index")
 
     df = business.ports_to_id(df, "Source_Port", ports_dict)
