@@ -23,13 +23,15 @@ PORTS_DICTIONARY = {
     "dns": [5353]                       # 10
 }
 
-def main_raw(spark, raw_dir, temp_dir, downloaded_dir, file_writer, file_name='raw'):
+def main_raw(spark, raw_dir, downloaded_dir, file_name='raw'):
 
     raw_paths = FileSystemHandler.scan_directory(downloaded_dir, 'csv')
 
     df = raw.merge_csv_files(spark, raw_paths)
-    df = raw.stratify_dataframe(df)
+    df = raw.stratify_dataframe(df, " Label", ignore=['WebDDoS'])
     df = raw.refactor_headers(df)
+
+    df = df.drop("SimillarHTTP")
 
     raw_parquet_dir = f'{raw_dir}/{file_name}'
 
@@ -37,7 +39,7 @@ def main_raw(spark, raw_dir, temp_dir, downloaded_dir, file_writer, file_name='r
 
     return df
 
-def main_staging(df, staging_dir, temp_dir, file_writer, file_name='staging'):
+def main_staging(df, staging_dir, file_name='staging'):
 
     df = df.filter(df["Protocol"] != 0)
 
@@ -54,7 +56,7 @@ def main_staging(df, staging_dir, temp_dir, file_writer, file_name='staging'):
 
     return df
 
-def main_bussiness (df, temp_dir, business_dir, ports_dict, file_writer, file_name='business'):
+def main_bussiness (df, business_dir, ports_dict, file_name='business'):
 
     df = df.withColumn("Source_IP", business.ip_classification("Source_IP"))
     df = df.withColumn("Destination_IP", business.ip_classification("Destination_IP"))
@@ -71,8 +73,6 @@ def main_bussiness (df, temp_dir, business_dir, ports_dict, file_writer, file_na
     df.repartition(1).write.format('parquet').mode('overwrite').save(staging_parquet_dir)
 
     return df
-    
-
 
 ###################################################
 ###################################################

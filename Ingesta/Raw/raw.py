@@ -15,20 +15,22 @@ def merge_csv_files(spark, file_paths):
     
     return combined_df
 
-def stratify_dataframe(df):
+def stratify_dataframe(df, target, ignore=[]):
     """
     Agrupa las filas en base al target, excluye las filas que en ese target tenga los valores a ignorar indicados.
     Luego coge el grupo con menor cantidad de valores e iguala todos los grupos para que tenga esa misma cantidad de instancias.
     Finalmente unifica los dataframes y los devuelve
+
+    :df: Dataframe
+    :target: columna por la cual se quiere agrupar
+    :ignore: valores de la columna que se quieren ignorar
     """
 
     label_counts = df.groupBy(" Label").count().collect()
-    min_count = min(row['count'] for row in label_counts if row[' Label'] != 'WebDDoS')
+    min_count = min(row['count'] for row in label_counts if row[target] not in ignore)
 
-    # Tomar una muestra de tamaño igual al número mínimo de entradas para cada valor de 'label'
-    sampled_dfs = [df.filter((col(" Label") == row[' Label'])).sample(False, min_count / row['count'], seed=2) for row in label_counts if (row[' Label'] != 'WebDDoS')]
+    sampled_dfs = [df.filter((col(target) == row[target])).sample(False, min_count / row[target], seed=2) for row in label_counts if (row[target] not in ignore)]
 
-    # Combinar las muestras en un DataFrame final estratificado
     balanced_df = sampled_dfs[0]
     for sdf in sampled_dfs[1:]:
         balanced_df = balanced_df.union(sdf)
@@ -37,17 +39,13 @@ def stratify_dataframe(df):
 
 def refactor_headers(df):
 
-    #Los jobs de GLUE no pueden tener archivos cuyos headers contengan espacios
     '''
-    for column in df.columns:
-        new_column = column.strip().replace(' ', '_')
-        df = df.withColumnRenamed(column, new_column)
-    '''
-    for column in df.columns:
-        new_column = column.strip().replace(' ', '_')
-        df = df.withColumnRenamed(column, new_column)
+    Se reemplazan, en los nombres de las columnas, los espacios por _
 
-    #Esta columna causa problemas en aws
-    df = df.drop("SimillarHTTP")
+    :df: Dataframe
+    '''
+    for column in df.columns:
+        new_column = column.strip().replace(' ', '_')
+        df = df.withColumnRenamed(column, new_column)
 
     return df
