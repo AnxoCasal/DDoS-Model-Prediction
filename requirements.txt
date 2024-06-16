@@ -1,0 +1,46 @@
+appdirs @ file:///home/conda/feedstock_root/build_artifacts/appdirs_1603108395799/work
+Brotli @ file:///home/conda/feedstock_root/build_artifacts/brotli-split_1695989787169/work
+certifi @ file:///croot/certifi_1717618050233/work/certifi
+charset-normalizer @ file:///home/conda/feedstock_root/build_artifacts/charset-normalizer_1698833585322/work
+click @ file:///home/conda/feedstock_root/build_artifacts/click_1692311806742/work
+docker-pycreds==0.4.0
+filelock @ file:///home/conda/feedstock_root/build_artifacts/filelock_1718250083293/work
+fsspec @ file:///home/conda/feedstock_root/build_artifacts/fsspec_1717498510112/work
+gitdb @ file:///home/conda/feedstock_root/build_artifacts/gitdb_1697791558612/work
+GitPython @ file:///home/conda/feedstock_root/build_artifacts/gitpython_1711991025291/work
+gmpy2 @ file:///home/conda/feedstock_root/build_artifacts/gmpy2_1715527288181/work
+idna @ file:///home/conda/feedstock_root/build_artifacts/idna_1713279365350/work
+Jinja2 @ file:///home/conda/feedstock_root/build_artifacts/jinja2_1715127149914/work
+joblib @ file:///home/conda/feedstock_root/build_artifacts/joblib_1714665484399/work
+MarkupSafe @ file:///home/conda/feedstock_root/build_artifacts/markupsafe_1706899926732/work
+mpmath @ file:///home/conda/feedstock_root/build_artifacts/mpmath_1678228039184/work
+networkx @ file:///home/conda/feedstock_root/build_artifacts/networkx_1712540363324/work
+numpy @ file:///home/conda/feedstock_root/build_artifacts/numpy_1707225376651/work/dist/numpy-1.26.4-cp311-cp311-linux_x86_64.whl#sha256=d08e1c9e5833ae7780563812aa73e2497db1ee3bd5510d3becb8aa18aa2d0c7c
+pandas @ file:///home/conda/feedstock_root/build_artifacts/pandas_1715897625506/work
+pathtools==0.1.2
+pillow @ file:///home/conda/feedstock_root/build_artifacts/pillow_1712154447422/work
+protobuf==4.25.3
+psutil @ file:///home/conda/feedstock_root/build_artifacts/psutil_1705722403006/work
+py4j @ file:///home/conda/feedstock_root/build_artifacts/py4j_1660381574436/work
+pyarrow==16.1.0
+PySocks @ file:///home/conda/feedstock_root/build_artifacts/pysocks_1661604839144/work
+pyspark @ file:///home/conda/feedstock_root/build_artifacts/pyspark_1709470827857/work
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1709299778482/work
+pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1706886791323/work
+PyYAML @ file:///home/conda/feedstock_root/build_artifacts/pyyaml_1695373611984/work
+requests @ file:///home/conda/feedstock_root/build_artifacts/requests_1717057054362/work
+scikit-learn @ file:///home/conda/feedstock_root/build_artifacts/scikit-learn_1716489734259/work/dist/scikit_learn-1.5.0-cp311-cp311-linux_x86_64.whl#sha256=4e4d00ec549661aa22a03bd61e339cfd7abf80e247c75a0b3a95cc04b3c04b2d
+scipy @ file:///home/conda/feedstock_root/build_artifacts/scipy-split_1716470220807/work/dist/scipy-1.13.1-cp311-cp311-linux_x86_64.whl#sha256=497f9d1a91aa2301c4dbd6d0678fb3053900d59dde1ee936267e18aee722ba8f
+sentry-sdk @ file:///home/conda/feedstock_root/build_artifacts/sentry-sdk_1717809869273/work
+setproctitle @ file:///home/conda/feedstock_root/build_artifacts/setproctitle_1696431161493/work
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
+smmap @ file:///home/conda/feedstock_root/build_artifacts/smmap_1634310307496/work
+sympy @ file:///home/conda/feedstock_root/build_artifacts/sympy_1684180540116/work
+threadpoolctl @ file:///home/conda/feedstock_root/build_artifacts/threadpoolctl_1714400101435/work
+torch @ file:///home/conda/feedstock_root/build_artifacts/libtorch_1716579264291/work
+torchaudio==2.3.0
+torchvision @ file:///home/conda/feedstock_root/build_artifacts/torchvision_1718091083183/work
+typing_extensions @ file:///home/conda/feedstock_root/build_artifacts/typing_extensions_1717802530399/work
+tzdata @ file:///home/conda/feedstock_root/build_artifacts/python-tzdata_1707747584337/work
+urllib3 @ file:///home/conda/feedstock_root/build_artifacts/urllib3_1708239446578/work
+wandb @ file:///home/conda/feedstock_root/build_artifacts/wandb_1711408286622/work
