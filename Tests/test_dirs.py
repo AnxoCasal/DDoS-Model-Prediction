@@ -4,7 +4,7 @@ import unittest
 class TestFileStructure(unittest.TestCase):
     
     def setUp(self):
-        self.base_directory = "../"
+        self.base_directory = ""
         self.required_structure = [
             ('', ['Ingesta', 'Archivos', 'Utils'], []),
             ('Ingesta', ['Raw', 'Staging', 'Business'], []),
@@ -30,5 +30,7 @@ class TestFileStructure(unittest.TestCase):
             self.assertTrue(os.path.isdir(current_dir), f"Missing directory: {current_dir}")
             self.check_directory(current_dir, subdirs, files)
 
-if __name__ == "__main__":
+def test_file_structure():
     unittest.main()
+
+test_file_structure()

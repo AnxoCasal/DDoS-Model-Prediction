@@ -2,8 +2,7 @@ from Utils.utils import SparkSessionHandler, FileSystemHandler
 from Ingesta.Raw import raw
 from Ingesta.Staging import staging
 from Ingesta.Business import business
-import os
-import sys
+import os, sys
 
 os.environ['PYSPARK_PYTHON'] = sys.executable
 os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
@@ -28,9 +27,11 @@ PORTS_DICTIONARY = {
     "dns": [5353]                       # 10
 }
 
-def main_raw(spark, raw_dir, downloaded_dir, file_name='raw'):
+def main_raw(spark, raw_dir, downloaded_dir, file_name='raw', extension='csv'):
 
     raw_paths = FileSystemHandler.scan_directory(downloaded_dir, 'csv')
+
+    assert len(raw_paths) > 0, f'No se encontró ningún archivo con extension {extension} en el directorio {downloaded_dir}'
 
     df = raw.merge_csv_files(spark, raw_paths)
     df = raw.stratify_dataframe(df, " Label", ignore=['WebDDoS'])
@@ -42,9 +43,11 @@ def main_raw(spark, raw_dir, downloaded_dir, file_name='raw'):
 
     df.repartition(1).write.format('parquet').mode('overwrite').save(raw_parquet_dir)
 
-    return df
+    return raw_parquet_dir
 
-def main_staging(df, staging_dir, file_name='staging'):
+def main_staging(spark, raw_path, staging_dir, file_name='staging'):
+
+    df = spark.read.parquet(raw_path, header=True, inferSchema=True)
 
     df = df.filter(df["Protocol"] != 0)
 
@@ -59,9 +62,11 @@ def main_staging(df, staging_dir, file_name='staging'):
 
     df.repartition(1).write.format('parquet').mode('overwrite').save(staging_parquet_dir)
 
-    return df
+    return staging_parquet_dir
 
-def main_bussiness (df, business_dir, ports_dict, file_name='business'):
+def main_bussiness (spark, staging_path, business_dir, ports_dict, file_name='business'):
+
+    df = spark.read.parquet(staging_path, header=True, inferSchema=True)
 
     df = df.withColumn("Source_IP", business.ip_classification("Source_IP"))
     df = df.withColumn("Destination_IP", business.ip_classification("Destination_IP"))
@@ -73,11 +78,11 @@ def main_bussiness (df, business_dir, ports_dict, file_name='business'):
     df = business.ports_to_id(df, "Source_Port", ports_dict)
     df = business.ports_to_id(df, "Destination_Port", ports_dict)
 
-    staging_parquet_dir = f'{business_dir}/{file_name}'
+    business_parquet_dir = f'{business_dir}/{file_name}'
 
-    df.repartition(1).write.format('parquet').mode('overwrite').save(staging_parquet_dir)
+    df.repartition(1).write.format('parquet').mode('overwrite').save(business_parquet_dir)
 
-    return df
+    return business_parquet_dir
 
 ###################################################
 ###################################################
@@ -89,18 +94,24 @@ spark = SparkSessionHandler.start_session()
 #                 C A P A    R A W                 #
 ####################################################
  
-df = main_raw(spark, RAW_DIR, DOWNLOADED_DIR)
+raw_path = main_raw(spark, RAW_DIR, DOWNLOADED_DIR)
+
+print('raw acabado')
  
 ######################################################
 #              C A P A    S T A G I N G              #
 ######################################################
  
-df = main_staging(df, STAGING_DIR)
+staging_path = main_staging(spark, raw_path, STAGING_DIR)
+
+print('staging acabado')
  
 ########################################################
 #              C A P A    B U S I N E S S              #
 ########################################################
 
-df = main_bussiness(df, BUSINESS_DIR, PORTS_DICTIONARY)
+business_park = main_bussiness(spark, staging_path, BUSINESS_DIR, PORTS_DICTIONARY)
+
+print('business acabado')
  
 SparkSessionHandler.stop_session(spark)
