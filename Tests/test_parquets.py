@@ -1,7 +1,6 @@
 import unittest
 from main import main_staging, main_business
 
-
 class TestParquetPersistence(unittest.TestCase):
 
     def test_no_raw_parquet_raises_exc(self):

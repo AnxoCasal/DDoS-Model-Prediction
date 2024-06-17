@@ -4,7 +4,7 @@ import unittest
 class TestFileStructure(unittest.TestCase):
     
     def setUp(self):
-        self.base_directory = ''
+        self.base_directory = '.'
         self.required_structure = [
             ('', ['Ingesta', 'Archivos', 'Utils'], []),
             ('Ingesta', ['Raw', 'Staging', 'Business'], []),

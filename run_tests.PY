@@ -6,14 +6,11 @@ from Tests.test_csv_structure import TestCSVEstructure
 import unittest
 
 def run_tests(test):
-    # Crear un test suite
     suite = unittest.TestLoader().loadTestsFromTestCase(test)
     
-    # Ejecutar el test suite
     runner = unittest.TextTestRunner()
     result = runner.run(suite)
     
-    # Puedes manejar los resultados aquí
     if result.wasSuccessful():
         print("Todos los tests pasaron")
     else:
@@ -21,8 +18,9 @@ def run_tests(test):
         result.printErrors()
 
 if __name__ == "__main__":
-    #run_tests(TestMergeCSV)
-    #run_tests(TestFileStructure)
-    #run_tests(TestParquetPersistence)
-    #run_tests(TestAWSCredentials)
+    
+    run_tests(TestMergeCSV)
+    run_tests(TestFileStructure)
+    run_tests(TestParquetPersistence)
+    run_tests(TestAWSCredentials)
     run_tests(TestCSVEstructure)
