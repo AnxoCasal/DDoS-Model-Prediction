@@ -79,7 +79,7 @@ Y en caso de estar utilizando Linux, no necesitaremos WSL.
 
 [Alejandro García López](https://www.linkedin.com/in/alejandro-garcia-lopez-3450041a3/)  
 [Anxo Casal Rodríguez](https://www.linkedin.com/in/anxo-casal-rodr%C3%ADguez-44b84630b/)  
-[Iago Núñez Lourés](www.linkedin.com/in/iago-núñez-lourés-237a85299)
+[Iago Núñez Lourés](https://www.linkedin.com/in/iago-núñez-lourés-237a85299/)
 
 ## Contribución
 
