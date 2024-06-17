@@ -40,7 +40,7 @@ args = getResolvedOptions(sys.argv, ['staging_bucket', 'business_bucket'])
 input_bucket = args['staging_bucket']
 output_bucket = args['business_bucket']
 
-df = spark.read.parquet(f"s3://{input_bucket}/staging.parquet")
+df = spark.read.parquet(f"s3a://{input_bucket}/staging.parquet")
 
 df = df.withColumn("Source_IP", ip_classification("Source_IP"))
 df = df.withColumn("Destination_IP", ip_classification("Destination_IP"))
