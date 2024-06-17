@@ -11,14 +11,21 @@ class AWS_GLUE_S3():
         buckets = self.get_buckets()
         staging_file = "glue-raw-staging.py"
         business_file = "glue-staging-business.py"
+        staging = self.file(staging_file)
+        business =  self.file(business_file)
 
-        if not any("glue-scripts" in bucket for bucket in buckets):
+        if not any("glue-scripts-rsb" in bucket for bucket in buckets):
             bucket_name = "glue-scripts-rsb"
             self.create_s3_bucket(bucket_name)
-            staging = self.file(staging_file)
             self.upload_file(staging_file,staging,bucket_name) 
-            business =  self.file(business_file)
             self.upload_file(business_file,business,bucket_name) 
+            
+        else:
+            objects = self.s3_client.list_objects_v2(Bucket="glue-scripts-rsb")
+            if not any(staging_file in obj['Key'] for obj in objects):
+                self.upload_file(staging_file,staging,bucket_name) 
+            if not any(business_file in obj['Key'] for obj in objects):
+                self.upload_file(business_file,business,bucket_name) 
 
         timestmp = int(time.time())
 
