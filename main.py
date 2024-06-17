@@ -1,10 +1,15 @@
-from utils.utils import SparkSessionHandler, FileSystemHandler, SavePartitions
-from ingesta.raw import raw
-from ingesta.staging import staging
-from ingesta.business import business
+from Utils.utils import SparkSessionHandler, FileSystemHandler
+from Ingesta.Raw import raw
+from Ingesta.Staging import staging
+from Ingesta.Business import business
+import os
+import sys
+
+os.environ['PYSPARK_PYTHON'] = sys.executable
+os.environ['PYSPARK_DRIVER_PYTHON'] = sys.executable
 
 TEMP_DIR = './tmp'
-DOWNLOADED_DIR = "./Archivos/Downloaded/"
+DOWNLOADED_DIR = "./Archivos/Downloaded"
 RAW_DIR = './Archivos/Raw'
 STAGING_DIR = './Archivos/Staging'
 BUSINESS_DIR = './Archivos/Business'
@@ -79,22 +84,23 @@ def main_bussiness (df, business_dir, ports_dict, file_name='business'):
 ###################################################
 
 spark = SparkSessionHandler.start_session()
-
+ 
 ####################################################
 #                 C A P A    R A W                 #
 ####################################################
-
-df = main_raw(spark, RAW_DIR, TEMP_DIR, DOWNLOADED_DIR)
-
+ 
+df = main_raw(spark, RAW_DIR, DOWNLOADED_DIR)
+ 
 ######################################################
 #              C A P A    S T A G I N G              #
 ######################################################
-
-df = main_staging(df, STAGING_DIR, TEMP_DIR)
-
+ 
+df = main_staging(df, STAGING_DIR)
+ 
 ########################################################
 #              C A P A    B U S I N E S S              #
 ########################################################
-df = main_bussiness(df, BUSINESS_DIR, TEMP_DIR, PORTS_DICTIONARY)
 
+df = main_bussiness(df, BUSINESS_DIR, PORTS_DICTIONARY)
+ 
 SparkSessionHandler.stop_session(spark)
