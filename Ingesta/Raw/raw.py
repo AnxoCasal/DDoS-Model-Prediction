@@ -29,7 +29,7 @@ def stratify_dataframe(df, target, ignore=[]):
     label_counts = df.groupBy(" Label").count().collect()
     min_count = min(row['count'] for row in label_counts if row[target] not in ignore)
 
-    sampled_dfs = [df.filter((col(target) == row[target])).sample(False, min_count / row[target], seed=2) for row in label_counts if (row[target] not in ignore)]
+    sampled_dfs = [df.filter((col(target) == row[target])).sample(False, min_count / row["count"], seed=2) for row in label_counts if (row[target] not in ignore)]
 
     balanced_df = sampled_dfs[0]
     for sdf in sampled_dfs[1:]:

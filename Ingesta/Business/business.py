@@ -56,7 +56,7 @@ def index_colum(df, column, new_column, drop= True):
     unique_values = df.select(column).distinct().rdd.map(lambda r: r[0]).collect()
     value_to_index = {val: float(index) for index, val in enumerate(unique_values)}
 
-    FileSystemHandler.dictionary_to_json(value_to_index, './utils', column)
+    FileSystemHandler.dictionary_to_json(value_to_index, './Utils', column)
 
     if drop:
         indexed_df = indexed_df.drop(column)
