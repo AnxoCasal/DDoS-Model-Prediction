@@ -34,7 +34,7 @@ def main_raw(spark, raw_dir, downloaded_dir, file_name='raw', extension='csv'):
     assert len(raw_paths) > 0, f'No se encontró ningún archivo con extension {extension} en el directorio {downloaded_dir}'
 
     df = raw.merge_csv_files(spark, raw_paths)
-    df = raw.stratify_dataframe(df, " Label", ignore=['WebDDoS'])
+    df = raw.stratify_dataframe(df, " Label", ignore=['UDPLag'])
     df = raw.refactor_headers(df)
 
     df = df.drop("SimillarHTTP")
@@ -46,6 +46,8 @@ def main_raw(spark, raw_dir, downloaded_dir, file_name='raw', extension='csv'):
     return raw_parquet_dir
 
 def main_staging(spark, raw_path, staging_dir, file_name='staging'):
+
+    assert len(FileSystemHandler.scan_directory(raw_path, 'parquet')), f'No se ha podido cargar el parquet {raw_path}. Verifica la ruta especificada o vuelve a ejecutar la etl'
 
     df = spark.read.parquet(raw_path, header=True, inferSchema=True)
 
@@ -64,7 +66,9 @@ def main_staging(spark, raw_path, staging_dir, file_name='staging'):
 
     return staging_parquet_dir
 
-def main_bussiness (spark, staging_path, business_dir, ports_dict, file_name='business'):
+def main_business (spark, staging_path, business_dir, ports_dict, file_name='business'):
+
+    assert len(FileSystemHandler.scan_directory(staging_path, 'parquet')), f'No se ha podido cargar el parquet {staging_path}. Verifica la ruta especificada o vuelve a ejecutar la etl'
 
     df = spark.read.parquet(staging_path, header=True, inferSchema=True)
 
@@ -84,34 +88,33 @@ def main_bussiness (spark, staging_path, business_dir, ports_dict, file_name='bu
 
     return business_parquet_dir
 
-###################################################
-###################################################
-###################################################
 
-spark = SparkSessionHandler.start_session()
- 
-####################################################
-#                 C A P A    R A W                 #
-####################################################
- 
-raw_path = main_raw(spark, RAW_DIR, DOWNLOADED_DIR)
+if __name__ == '__main__':
+    
+    spark = SparkSessionHandler.start_session()
+    
+    ####################################################
+    #                 C A P A    R A W                 #
+    ####################################################
+    
+    raw_path = main_raw(spark, RAW_DIR, DOWNLOADED_DIR)
 
-print('raw acabado')
- 
-######################################################
-#              C A P A    S T A G I N G              #
-######################################################
- 
-staging_path = main_staging(spark, raw_path, STAGING_DIR)
+    print('raw acabado')
+    
+    ######################################################
+    #              C A P A    S T A G I N G              #
+    ######################################################
+    
+    staging_path = main_staging(spark, raw_path, STAGING_DIR)
 
-print('staging acabado')
- 
-########################################################
-#              C A P A    B U S I N E S S              #
-########################################################
+    print('staging acabado')
+    
+    ########################################################
+    #              C A P A    B U S I N E S S              #
+    ########################################################
 
-business_park = main_bussiness(spark, staging_path, BUSINESS_DIR, PORTS_DICTIONARY)
+    business_path = main_business(spark, staging_path, BUSINESS_DIR, PORTS_DICTIONARY)
 
-print('business acabado')
- 
-SparkSessionHandler.stop_session(spark)
+    print('business acabado')
+    
+    SparkSessionHandler.stop_session(spark)

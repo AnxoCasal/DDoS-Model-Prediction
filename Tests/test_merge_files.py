@@ -6,6 +6,6 @@ class TestMergeCSV(unittest.TestCase):
         with self.assertRaises(AssertionError):
             merge_csv_files(None, [])
 
-def test_merge_csv():
+if __name__ == '__main__':
     unittest.main()
 
