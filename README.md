@@ -3,7 +3,7 @@
 Este proyecto se ha creado con la finalidad de, a partir de un PCAP de Wireshark, predecimos si se está sufriendo algún tipo de ataque, tanto Ddos como DrDos y los diferentes tipos entre ellos.
 
 Hemos utilizado un dataset (CSVs/CSV-03-11.zip) de la universidad de New Brunswick que contiene 87 columnas y millones de filas de las cuales hemos limpiado y nos hemos quedado con, alrededor de, 400 mil filas. 
-Los datos contienen valores como IP’s, protocolos, puertos, tamaño de paquetes, tiempo entre paquetes, etc. Estos se obtuvieron de un PCAP a través de la aplicación Wireshark durante 2 días. Se simuló actividad benigna de 25 usuarios a través de protocolos HTTP, HTTPS, FTP, SSH y email. Contienen datos de 5 tipos de ataques diferentes además de datos de tránsito de red benignos.
+Los datos contienen valores como IP’s, protocolos, puertos, tamaño de paquetes, tiempo entre paquetes, etc. Estos se obtuvieron de un PCAP a través de la aplicación Wireshark durante 2 días. Se simuló actividad benigna de 25 usuarios a través de protocolos HTTP, HTTPS, FTP, SSH y email. Contienen datos de 6 tipos de ataques diferentes además de datos de tránsito de red benignos.
 
 Hemos utilizado el siguiente Dataset para el entrenamiento del modelo:
 
