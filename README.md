@@ -13,7 +13,7 @@ A partir de ese Dataset, hemos realizado una ETL para transformar los datos a nu
 
 Durante el entrenamiento de las Redes Neuronales hemos utilizado diferentes técnicas, entre ellas, búsquedas bayesianas en las que usamos la aplicación web de WandB. Dejamos el link con los resultados aquí:
 
-[WandB](https://wandb.ai/kat-lon/DDoS_sweeps?nw=nwusernunezlouresiago)
+[Weigths & Biases](https://wandb.ai/kat-lon/DDoS_sweeps?nw=nwusernunezlouresiago)
 
 ## Modo de Uso
 
