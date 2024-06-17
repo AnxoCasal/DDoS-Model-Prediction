@@ -1,0 +1,42 @@
+Table Factous {
+    Timestamp_id integer [primary key]
+    Packet_id integer 
+    Source_id integer
+    Destination_id integer
+    Protocol integer
+    Label text
+}
+
+Table Packets {
+  Packet_id integer [primary key]
+  Packets_info object
+}
+
+Table Timestamp {
+  Timestamp_id integer [primary key]
+  Year timestamp
+  Month timestamp
+  Day timestamp
+}
+
+Table Source {
+  Source_id integer [primary key]
+  Source_IP text
+  Source_Port text
+}
+
+Table Destination {
+  Destination_id integer [primary key]
+  Destination_IP text
+  Destination_Port text
+}
+  
+  
+  
+Ref: "Factous"."Timestamp_id" - "Timestamp"."Timestamp_id"
+
+Ref: "Packets"."Packet_id" - "Factous"."Packet_id"
+
+Ref: "Destination"."Destination_id" - "Factous"."Destination_id"
+
+Ref: "Factous"."Source_id" - "Source"."Source_id"
