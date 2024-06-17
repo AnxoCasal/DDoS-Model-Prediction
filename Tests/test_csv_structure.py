@@ -17,7 +17,7 @@ class TestCSVEstructure(unittest.TestCase):
             df = pd.read_csv(file, nrows=0)
             headers.append(df.columns.tolist())
         
-        self.assertEquals(len(set(tuple(sublista) for sublista in headers)), 1 ,
+        self.assertEqual(len(set(tuple(sublista) for sublista in headers)), 1 ,
                            f'Los archivos del directorio {ruta_downloaded} tienen estructuras diferentes')
 
 
