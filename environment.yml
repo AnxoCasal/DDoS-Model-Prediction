@@ -12,3 +12,6 @@ dependencies:
   - pyspark
   - scikit-learn
   - wandb
+  - ipykernel
+  - matplotlib
+  - seaborn
