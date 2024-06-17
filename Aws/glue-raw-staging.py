@@ -41,7 +41,7 @@ glueContext.write_dynamic_frame.from_options(
     frame=dynamic_frame,
     connection_type="s3",
     connection_options={
-        "path": f"s3://{output_bucket}/staging.parquet",
+        "path": f"s3a://{output_bucket}/staging.parquet",
         "partitionKeys": [],  
     },
     format="parquet",
