@@ -24,15 +24,8 @@ class ResidualBlock(nn.Module):
         out = self.relu(out)
         return out
     
-class LastHope(nn.Module):
+class ResNet(nn.Module):
     '''
-        LastHope representa la última defensa, el baluarte final en la lucha por un modelo competente.
-        Con el poder de los bloques residuales, esta red es nuestra Odisea moderna, destinada a superar
-        los obstáculos del desvanecimiento del gradiente y la ineficiencia en el aprendizaje.
-    
-        En un mar de incertidumbre, LastHope es la luz de Pharos, la promesa de precisión y robustez.
-        Si fallamos aquí, todo estará perdido.
-    
         Args:
             input_features (int): Características de entrada.
             num_classes (int): Clases de salida.
