@@ -42,7 +42,7 @@ A continuación, ejecutaremos el archivo main.py si tenemos archivos nuevos en l
 ```bash
 python3 main.py
 ```
-###Entrenamiento integrado con Weights and Biases
+### Entrenamiento integrado con Weights and Biases
 
 Si quieres utilizar un modelo creado por ti pero usando el mismo entrenamiento que hemos utilizado en el proyecto, necesitarás crear un modelo en el directorio "Modelos" con la clase correspondiente.
 Necesitarás también una cuenta en Weights and Biases, e iniciar sesión en ella a través del comando:
