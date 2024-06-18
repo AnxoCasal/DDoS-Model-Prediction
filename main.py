@@ -27,68 +27,6 @@ PORTS_DICTIONARY = {
     "dns": [5353]                       # 10
 }
 
-def main_raw(spark, raw_dir, downloaded_dir, file_name='raw', extension='csv'):
-
-    raw_paths = FileSystemHandler.scan_directory(downloaded_dir, 'csv')
-
-    assert len(raw_paths) > 0, f'No se encontró ningún archivo con extension {extension} en el directorio {downloaded_dir}'
-
-    df = raw.merge_csv_files(spark, raw_paths)
-    df = raw.stratify_dataframe(df, " Label", ignore=['UDPLag'])
-    df = raw.refactor_headers(df)
-
-    df = df.drop("SimillarHTTP")
-
-    raw_parquet_dir = f'{raw_dir}/{file_name}'
-
-    df.repartition(1).write.format('parquet').mode('overwrite').save(raw_parquet_dir)
-
-    return raw_parquet_dir
-
-def main_staging(spark, raw_path, staging_dir, file_name='staging'):
-
-    assert len(FileSystemHandler.scan_directory(raw_path, 'parquet')), f'No se ha podido cargar el parquet {raw_path}. Verifica la ruta especificada o vuelve a ejecutar la etl'
-
-    df = spark.read.parquet(raw_path, header=True, inferSchema=True)
-
-    df = df.filter(df["Protocol"] != 0)
-
-    df = df.drop("Unnamed:_0", "Flow_ID", "Timestamp")
-
-    df = staging.fill_with_max(df, "Flow_Packets/s")
-    df = staging.fill_with_max(df, "Flow_Bytes/s")
-
-    df = staging.drop_single_value_columns(df)
-
-    staging_parquet_dir = f'{staging_dir}/{file_name}'
-
-    df.repartition(1).write.format('parquet').mode('overwrite').save(staging_parquet_dir)
-
-    return staging_parquet_dir
-
-def main_business (spark, staging_path, business_dir, ports_dict, file_name='business'):
-
-    assert len(FileSystemHandler.scan_directory(staging_path, 'parquet')), f'No se ha podido cargar el parquet {staging_path}. Verifica la ruta especificada o vuelve a ejecutar la etl'
-
-    df = spark.read.parquet(staging_path, header=True, inferSchema=True)
-
-    df = df.withColumn("Source_IP", business.ip_classification("Source_IP"))
-    df = df.withColumn("Destination_IP", business.ip_classification("Destination_IP"))
-
-    df = business.index_colum(df, "Protocol", "Protocal_Index")
-
-    df = business.index_colum(df, "Label", "Label_Index")
-
-    df = business.ports_to_id(df, "Source_Port", ports_dict)
-    df = business.ports_to_id(df, "Destination_Port", ports_dict)
-
-    business_parquet_dir = f'{business_dir}/{file_name}'
-
-    df.repartition(1).write.format('parquet').mode('overwrite').save(business_parquet_dir)
-
-    return business_parquet_dir
-
-
 if __name__ == '__main__':
     
     spark = SparkSessionHandler.start_session()
@@ -96,8 +34,11 @@ if __name__ == '__main__':
     ####################################################
     #                 C A P A    R A W                 #
     ####################################################
+    target = ' Label'
+    ignore_columns = ['UDPLag']
+    raw_drop = ['SimilarHTTP']
     
-    raw_path = main_raw(spark, RAW_DIR, DOWNLOADED_DIR)
+    raw_path = raw.main(spark, RAW_DIR, DOWNLOADED_DIR, target=' Label', ignore_columns=ignore_columns)
 
     print('raw acabado')
     
@@ -105,7 +46,12 @@ if __name__ == '__main__':
     #              C A P A    S T A G I N G              #
     ######################################################
     
-    staging_path = main_staging(spark, raw_path, STAGING_DIR)
+
+    staging_drop = ["Unnamed:_0", "Flow_ID", "Timestamp"]
+    filter_cols = ['Protocol']
+    fill_max = ['Flow_Packets/s', 'Flow_Bytes/s']
+
+    staging_path = staging.main(spark, raw_path, STAGING_DIR, filter_columns=filter_cols, drop_columns=staging_drop, fill_max=fill_max)
 
     print('staging acabado')
     
@@ -113,7 +59,11 @@ if __name__ == '__main__':
     #              C A P A    B U S I N E S S              #
     ########################################################
 
-    business_path = main_business(spark, staging_path, BUSINESS_DIR, PORTS_DICTIONARY)
+    ip_columns = ['Source_IP', 'Destination_IP']
+    index_columns = [('Protocol', 'Protocal_Index'), ('Label', 'Label_Index')]
+    port_columns = ['Source_Port', 'Destination_Port']
+
+    business_path = business.main(spark, staging_path, BUSINESS_DIR, ports_dict=PORTS_DICTIONARY, ip_columns=ip_columns, index_columns=index_columns, port_columns=port_columns)
 
     print('business acabado')
     

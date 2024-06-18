@@ -1,4 +1,5 @@
 from pyspark.sql.functions import col
+from Utils.utils import FileSystemHandler
 
 def merge_csv_files(spark, file_paths):
     """
@@ -49,3 +50,25 @@ def refactor_headers(df):
         df = df.withColumnRenamed(column, new_column)
 
     return df
+
+def main(spark, raw_dir, downloaded_dir, target=None, ignore_columns=[], drop_columns=None, file_name='raw', extension='csv'):
+
+    raw_paths = FileSystemHandler.scan_directory(downloaded_dir, 'csv')
+
+    assert len(raw_paths) > 0, f'No se encontró ningún archivo con extension {extension} en el directorio {downloaded_dir}'
+
+    df = merge_csv_files(spark, raw_paths)
+
+    if target is not None:
+        df = stratify_dataframe(df, target, ignore=ignore_columns)
+
+    df = refactor_headers(df)
+
+    if drop_columns is not None:
+        df = df.drop(*drop_columns)
+
+    raw_parquet_dir = f'{raw_dir}/{file_name}'
+
+    df.repartition(1).write.format('parquet').mode('overwrite').save(raw_parquet_dir)
+
+    return raw_parquet_dir

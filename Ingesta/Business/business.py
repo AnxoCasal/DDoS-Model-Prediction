@@ -62,3 +62,25 @@ def index_colum(df, column, new_column, drop= True):
         indexed_df = indexed_df.drop(column)
 
     return indexed_df
+
+def main(spark, staging_path, business_dir, ip_columns=[], index_columns=[], ports_dict=None, port_columns=[], file_name='business'):
+
+    assert len(FileSystemHandler.scan_directory(staging_path, 'parquet')), f'No se ha podido cargar el parquet {staging_path}. Verifica la ruta especificada o vuelve a ejecutar la etl'
+
+    df = spark.read.parquet(staging_path, header=True, inferSchema=True)
+
+    for column in ip_columns:
+        df = df.withColumn(column, ip_classification(column))
+
+    for column_pair in index_columns:
+        df = index_colum(df, column_pair[0], column_pair[1])
+
+    if ports_dict is not None:
+        for column in port_columns:
+            df = ports_to_id(df, column, ports_dict)
+
+    business_parquet_dir = f'{business_dir}/{file_name}'
+
+    df.repartition(1).write.format('parquet').mode('overwrite').save(business_parquet_dir)
+
+    return business_parquet_dir
