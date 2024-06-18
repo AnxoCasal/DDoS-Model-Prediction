@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader, Subset, TensorDataset
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
 import wandb
 from Modelos.Model_lab import NN_01, NN_02, NN_03, NN_04
-from Modelos.ResNet import LastHope
+from Modelos.ResNet import ResNet
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DATASET_PATH = '../Entrenamiento/training_set.parquet'
@@ -98,8 +98,8 @@ def build_model(model):
        model = NN_03()
     elif model == "NN_04":
        model = NN_04()
-    elif model == "last_hope":
-       model = LastHope()
+    elif model == "res":
+       model = ResNet()
 
     model.to(DEVICE)
     return model
