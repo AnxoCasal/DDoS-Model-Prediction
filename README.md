@@ -62,13 +62,13 @@ python3 create_wandb_agent.py
 Este te devolverá un "sweep_id" que podrás usar para comenzar el entrenamiento mediante el siguiente comando:
 
 ```bash
-wandb agent ""tu swwep_id""
+wandb agent ""sweep_id""
 ```
 
 Y en el caso de contar con una maquina con múltiples GPUs, podrás paralelizar el entrenamiento lanzando un agente en cada GPU usando:
 
 ```bash
-CUDA_VISIBLE_DEVICES=N wandb agent ""tu swwep_id""
+CUDA_VISIBLE_DEVICES=N wandb agent ""sweep_id""
 ```
 
 Dónde "N" es el número de la tarjeta gráfica que quieres usar. Ten en cuenta que necesitarás abrir una consola nueva para cada agente
