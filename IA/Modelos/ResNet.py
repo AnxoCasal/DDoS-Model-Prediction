@@ -32,7 +32,7 @@ class ResNet(nn.Module):
             hidden_features (list): Dimensiones de capas ocultas.
     '''
     def __init__(self, input_features=6, num_classes=7, hidden_features=[64, 128, 256, 128, 64]):
-        super(LastHope, self).__init__()
+        super(ResNet, self).__init__()
         self.input_layer = nn.Linear(input_features, hidden_features[0])
         
         layers = []
