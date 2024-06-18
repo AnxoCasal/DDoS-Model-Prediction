@@ -18,7 +18,7 @@ sweep_config['metric'] = metric
  
 parameters_dict = {
     'model': {
-        'values': ['anx_04']
+        'values': ['res']
         },
     'learning_rate': {
         'distribution': 'uniform',
