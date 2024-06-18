@@ -51,7 +51,7 @@ Necesitarás también una cuenta en Weights and Biases, e iniciar sesión en ell
 wandb login
 ```
 
-Una vez iniciada la sesión, podrás editar el archivo "create_wandb_agent.py" situado en la carpeta de entrenamiento. Cambia el nombre del proyecto, los parámetros de la búsqueda...
+Una vez iniciada la sesión, podrás editar el archivo "create_wandb_agent.py" situado en el directorio "IA". Cambia el nombre del proyecto, los parámetros de la búsqueda y más parámetros a tu antojo.
 En "training_sweeper.py" encontrarás el proceso de entrenamiento, que también podrás modificar y personalizar a tu antojo.
 Cuando hayas acabado de diseñar tu entrenamiento, lanza el archivo desde la consola usando:
 
