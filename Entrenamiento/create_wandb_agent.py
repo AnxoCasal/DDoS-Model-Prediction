@@ -1,5 +1,8 @@
-import train_sweeper
 import wandb
+
+USER = 'kat-lon'
+PROJECT = 'DDoS_sweeps'
+
 
 sweep_config = {
     'method': 'bayes'
@@ -7,18 +10,15 @@ sweep_config = {
  
 #Definimos métrica
 metric = {
-    'name': 'loss',
-    'goal': 'minimize'  
+    'name': 'test_acc',
+    'goal': 'maximize'  
     }
  
 sweep_config['metric'] = metric
  
 parameters_dict = {
     'model': {
-        'value': 'LNN_01'
-        },
-    'optimizer': {
-        'value': 'adam'
+        'values': ['anx_04']
         },
     'learning_rate': {
         'distribution': 'uniform',
@@ -26,10 +26,10 @@ parameters_dict = {
         'max': 0.01
         },
     'batch_size': {
-        'values': [64, 32, 128, 256, 512]
+        'value': 512
       },
       'epochs': {
-          'values': [n for n in range(20, 50, 5)]
+          'values': [n for n in range(30, 100, 10)]
       },
       'k': {
           'values': [5, 10]
@@ -43,10 +43,7 @@ parameters_dict = {
  
 sweep_config['parameters'] = parameters_dict
 
-list_opciones = ['anx_01', 'anx_02', 'anx_03', 'anx_04']
- 
-for o in list_opciones:
-   
-    sweep_config['parameters']['model']['value'] = o
-    sweep_id = wandb.sweep(sweep_config, project="test_new_sweeper")
-    wandb.agent(sweep_id, train_sweeper.train, count=10)
+sweep_config['program'] = 'train_sweeper.py'
+
+sweep_id = wandb.sweep(sweep_config, project=PROJECT)
+print(f'SWEEP_ID: {USER}/{PROJECT}/{sweep_id}')

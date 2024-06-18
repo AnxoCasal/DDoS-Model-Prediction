@@ -1,14 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader, Subset, TensorDataset
-from Modelos.LNN_01 import SimpleNN
 from sklearn.model_selection import StratifiedKFold, StratifiedShuffleSplit
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 import wandb
-from Modelos.Model_lab import *
+from Modelos.Model_lab import NN_01, NN_02, NN_03, NN_04
+from Modelos.ResNet import LastHope
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 DATASET_PATH = '../Entrenamiento/training_set.parquet'
@@ -35,7 +33,6 @@ def train(config=None):
         model = build_model(config.model)
         optimizer = optim.Adam(model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay)
         criterion = nn.CrossEntropyLoss()
-        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, threshold=0.05, threshold_mode='rel', patience=2, cooldown=3)
 
         kf = StratifiedKFold(n_splits=config.k, shuffle=True, random_state=2)
         epochs_per_fold = config.epochs // config.k
@@ -51,7 +48,7 @@ def train(config=None):
             test_loader = DataLoader(test_subset, batch_size=config.batch_size, shuffle=True)
             
             factor += 1
-            training_loop(model, train_loader, test_loader, optimizer, criterion, scheduler, epochs_per_fold, factor=factor)
+            training_loop(model, train_loader, test_loader, optimizer, criterion, epochs_per_fold, factor=factor)
 
         plot_final(model, test_data)
 
@@ -73,8 +70,10 @@ def build_data():
     train_idx, test_idx = next(strat_splitter.split(X, y))
 
     x_train = torch.Tensor(X[train_idx])
+    x_train = x_train.unsqueeze(2)
     y_train = torch.Tensor(y[train_idx]).long()
     x_test = torch.Tensor(X[test_idx])
+    x_test = x_test.unsqueeze(2)
     y_test = torch.Tensor(y[test_idx]).long()
 
     train_data = TensorDataset(x_train, y_train)
@@ -91,17 +90,16 @@ def build_model(model):
         -cnn: empleará el modelo convolucional simple
         -res: empleará el modelo de redes residuales
     '''
-    if model == "LNN_01":
-        model = SimpleNN()
-    elif model == "anx_01":
+    if model == "NN_01":
        model = NN_01()
-    elif model == "anx_02":
+    elif model == "NN_02":
        model = NN_02()
-    elif model == "anx_03":
+    elif model == "NN_03":
        model = NN_03()
-    elif model == "anx_04":
+    elif model == "NN_04":
        model = NN_04()
-       pass
+    elif model == "last_hope":
+       model = LastHope()
 
     model.to(DEVICE)
     return model
@@ -149,7 +147,7 @@ def calculate_accuracy(model, loader):
     accuracy = 100 * correct_predictions / total_predictions
     return accuracy
 
-def training_loop(model, train_loader, val_loader, optimizer, criterion, scheduler, epochs, factor=1):
+def training_loop(model, train_loader, val_loader, optimizer, criterion, epochs, factor=1):
     '''
     Función wrapper de calculate_accuracy y train_epoch. Actualizará los logs
     de wandb con la información pertinente a cada epoch.
@@ -168,9 +166,10 @@ def training_loop(model, train_loader, val_loader, optimizer, criterion, schedul
         accuracy = calculate_accuracy(model, val_loader)
         epoch_total = epoch + epochs * (factor - 1)
 
-        wandb.log({'epoch': epoch_total, 'loss': loss, 'val_acc': accuracy, 'learning_rate': scheduler.get_last_lr()})
+        wandb.log({'epoch': epoch_total, 
+		   'loss': loss, 
+	           'val_acc': accuracy})
 
-        scheduler.step(loss)
 
 def plot_final(model, data):
     '''
@@ -199,11 +198,13 @@ def plot_final(model, data):
 
     ground_truth = [int(n) for n in data.tensors[1]]
 
-    wandb.log({"pr": wandb.plot.pr_curve(ground_truth.cpu(), scores, labels=range(scores.size(1)))})
-    wandb.log({"roc": wandb.plot.roc_curve(ground_truth.cpu(), scores, labels=range(scores.size(1)))})
+    wandb.log({"pr": wandb.plot.pr_curve(ground_truth, scores, labels=range(scores.size(1)))})
+    wandb.log({"roc": wandb.plot.roc_curve(ground_truth, scores, labels=range(scores.size(1)))})
 
     cm = wandb.plot.confusion_matrix(
-        y_true=ground_truth.cpu(), preds=outputs, class_names=range(scores.size(1))
+        y_true=ground_truth, preds=outputs, class_names=range(scores.size(1))
     )
 
     wandb.log({"conf_mat": cm})
+
+train()
