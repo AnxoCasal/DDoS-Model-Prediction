@@ -68,10 +68,10 @@ wandb agent ""tu swwep_id""
 Y en el caso de contar con una maquina con múltiples GPUs, podrás paralelizar el entrenamiento lanzando un agente en cada GPU usando:
 
 ```bash
-CUDA_VISIBLE_DEVICES=# wandb agent ""tu swwep_id""
+CUDA_VISIBLE_DEVICES=N wandb agent ""tu swwep_id""
 ```
 
-Dónde "#" es el número de la tarjeta gráfica que quieres usar. Ten en cuenta que necesitarás abrir una consola nueva para cada agente
+Dónde "N" es el número de la tarjeta gráfica que quieres usar. Ten en cuenta que necesitarás abrir una consola nueva para cada agente
 
 ### Docker
 
