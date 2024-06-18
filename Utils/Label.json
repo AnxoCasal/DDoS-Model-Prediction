@@ -5,6 +5,5 @@
     "UDP": 3.0,
     "NetBIOS": 4.0,
     "MSSQL": 5.0,
-    "LDAP": 6.0,
-    "UDPLag": 7.0
+    "LDAP": 6.0
 }
