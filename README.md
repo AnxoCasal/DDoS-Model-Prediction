@@ -42,12 +42,36 @@ A continuación, ejecutaremos el archivo main.py si tenemos archivos nuevos en l
 ```bash
 python3 main.py
 ```
+###Entrenamiento integrado con Weights and Biases
 
-Si quieres utilizar un modelo creado por ti pero usando el mismo entrenamiento que hemos utilizado en el proyecto, necesitarás crear un modelo en el directorio "Modelos" con la clase correspondiente y ejecutar el archivo "algalope.py". Puedes añadir más de un modelo al directorio "Modelos" y lo meterá en cola hasta que acabe el modelo anterior. Para utilizar esta funcionalidad necesitarás una cuenta de WandB, con una api key registrada que se te requerirá en la línea de comandos.
+Si quieres utilizar un modelo creado por ti pero usando el mismo entrenamiento que hemos utilizado en el proyecto, necesitarás crear un modelo en el directorio "Modelos" con la clase correspondiente.
+Necesitarás también una cuenta en Weights and Biases, e iniciar sesión en ella a través del comando:
 
 ```bash
-python3 algalope.py
+wandb login
 ```
+
+Una vez iniciada la sesión, podrás editar el archivo "create_wandb_agent.py" situado en la carpeta de entrenamiento. Cambia el nombre del proyecto, los parámetros de la búsqueda...
+En "training_sweeper.py" encontrarás el proceso de entrenamiento, que también podrás modificar y personalizar a tu antojo.
+Cuando hayas acabado de diseñar tu entrenamiento, lanza el archivo desde la consola usando:
+
+```bash
+python3 create_wandb_agent.py
+```
+
+Este te devolverá un "sweep_id" que podrás usar para comenzar el entrenamiento mediante el siguiente comando:
+
+```bash
+wandb agent ""tu swwep_id""
+```
+
+Y en el caso de contar con una maquina con múltiples GPUs, podrás paralelizar el entrenamiento lanzando un agente en cada GPU usando:
+
+```bash
+CUDA_VISIBLE_DEVICES=# wandb agent ""tu swwep_id""
+```
+
+Dónde "#" es el número de la tarjeta gráfica que quieres usar. Ten en cuenta que necesitarás abrir una consola nueva para cada agente
 
 ### Docker
 
